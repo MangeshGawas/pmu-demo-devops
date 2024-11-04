@@ -1,6 +1,5 @@
-name: CI/CD for Angular Project
+name: CI/CD Workflow with Self-Hosted Runner
 
-# Triggers the workflow on push or pull request to the main branch
 on:
   push:
     branches: [main]
@@ -9,8 +8,8 @@ on:
 
 jobs:
   build:
-    # The runner where the job will run
-    runs-on: ubuntu-latest
+    # Use the self-hosted runner instead of GitHub-hosted runner
+    runs-on: self-hosted
 
     steps:
       # Step 1: Check out the code from the repository
@@ -21,33 +20,25 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Specify your Node.js version here
+          node-version: '18'
 
-      # Step 3: Cache npm dependencies for faster builds
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Step 4: Install dependencies
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 5: Build the Angular project
+      # Step 4: Build the Angular project
       - name: Build project
         run: npm run build --if-present
 
-      # Step 6 (Optional): Run tests
+      # Step 5: Run tests
       - name: Run tests
         run: npm run test -- --watch=false
 
   deploy:
-    # Deployment job (add your deployment steps here, e.g., upload to a server or cloud provider)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     steps:
-      - name: Deploy steps here
-        # Add your deployment steps, such as copying files or calling an API
+      - name: Deploy to server
+        run: |
+          # Add deployment commands specific to your environment
+          echo "Deploying application..."
