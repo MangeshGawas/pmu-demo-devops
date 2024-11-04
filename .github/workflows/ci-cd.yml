@@ -31,7 +31,7 @@ jobs:
 
       # Step 5: Build the Angular application
       - name: Build Angular application
-        run: ng build --configuration production  # Specify production build if needed
+        run: ng build 
 
       # Step 6: Run tests (optional, uncomment if needed)
       # - name: Run tests
