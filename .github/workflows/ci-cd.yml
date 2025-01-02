@@ -31,18 +31,29 @@ jobs:
 
       # Step 5: Build the Angular application
       - name: Build Angular application
-        run: ng build 
+        run: ng build
 
-      # Step 6: Run tests (optional, uncomment if needed)
-      # - name: Run tests
-      #   run: npm run test -- --watch=false
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
 
-  # Optionally add a deploy step
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   steps:
-  #     - name: Deploy to server
-  #       run: |
-  #         # Add deployment commands specific to your environment
-  #         echo "Deploying application..."
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up SSH
+      - name: Set up SSH for deployment
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Step 3: Transfer build artifacts to the shared server
+      - name: Deploy to shared server
+        run: |
+          ssh user@shared-server "mkdir -p /var/www/my-angular-app"
+          scp -r dist/my-angular-app/* user@shared-server:/var/www/my-angular-app/
+
+      # Step 4: Restart the web server (e.g., Apache or Nginx)
+      - name: Restart web server
+        run: ssh user@shared-server "sudo systemctl restart nginx"
