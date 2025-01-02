@@ -1,4 +1,4 @@
-name: CI/CD Workflow with Dummy Server
+name: CI/CD Workflow with GitHub-hosted Runner
 
 on:
   push:
@@ -38,21 +38,22 @@ jobs:
     needs: build
 
     steps:
-      # Step 1: Set up Docker
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
+      # Step 1: Check out the code from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      # Step 2: Create a Docker container to act as a dummy server
-      - name: Start dummy server
-        run: |
-          docker run -d --name dummy-server -p 8080:80 nginx
+      # Step 2: Set up SSH
+      - name: Set up SSH for deployment
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # Step 3: Copy build files to the dummy server
-      - name: Deploy to dummy server
+      # Step 3: Transfer build artifacts to the shared server
+      - name: Deploy to shared server
         run: |
-          docker cp dist/my-angular-app/. dummy-server:/usr/share/nginx/html/
+          ssh user@shared-server "mkdir -p /var/www/my-angular-app"
+          scp -r dist/my-angular-app/* user@shared-server:/var/www/my-angular-app/
 
-      # Step 4: Verify deployment
-      - name: Verify deployment
-        run: |
-          curl -I http://localhost:8080
+      # Step 4: Restart the web server (e.g., Apache or Nginx)
+      - name: Restart web server
+        run: ssh user@shared-server "sudo systemctl restart nginx"
